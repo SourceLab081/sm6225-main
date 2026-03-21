@@ -65,6 +65,11 @@
 #define MSM_VERSION_PATCHLEVEL	0
 
 static DEFINE_MUTEX(msm_release_lock);
+#ifdef CONFIG_TARGET_PROJECT_C3Q
+atomic_t resume_pending;
+wait_queue_head_t resume_wait_q;
+#endif
+static struct kmem_cache *kmem_vblank_work_pool;
 
 static void msm_fb_output_poll_changed(struct drm_device *dev)
 {
@@ -1808,6 +1813,12 @@ static int msm_runtime_resume(struct device *dev)
 #endif
 
 static const struct dev_pm_ops msm_pm_ops = {
+/*
+#ifdef CONFIG_TARGET_PROJECT_C3Q
+	.prepare = msm_pm_prepare,
+	.complete = msm_pm_complete,
+#endif
+*/
 	SET_SYSTEM_SLEEP_PM_OPS(msm_pm_suspend, msm_pm_resume)
 	SET_RUNTIME_PM_OPS(msm_runtime_suspend, msm_runtime_resume, NULL)
 };
