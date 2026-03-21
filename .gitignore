@@ -142,3 +142,4 @@ arch/arm64/boot/dts/vendor/
 #Ignoring Android.bp link file
 #
 Android.bp
+new/
