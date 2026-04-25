@@ -37,6 +37,51 @@ struct mmu_notifier_range {
 	bool blockable;
 };
 
+/**
+ * enum mmu_notifier_event - reason for the mmu notifier callback
+ * @MMU_NOTIFY_UNMAP: either munmap() that unmap the range or a mremap() that
+ * move the range
+ *
+ * @MMU_NOTIFY_CLEAR: clear page table entry (many reasons for this like
+ * madvise() or replacing a page by another one, ...).
+ *
+ * @MMU_NOTIFY_PROTECTION_VMA: update is due to protection change for the range
+ * ie using the vma access permission (vm_page_prot) to update the whole range
+ * is enough no need to inspect changes to the CPU page table (mprotect()
+ * syscall)
+ *
+ * @MMU_NOTIFY_PROTECTION_PAGE: update is due to change in read/write flag for
+ * pages in the range so to mirror those changes the user must inspect the CPU
+ * page table (from the end callback).
+ *
+ * @MMU_NOTIFY_SOFT_DIRTY: soft dirty accounting (still same page and same
+ * access flags). User should soft dirty the page in the end callback to make
+ * sure that anyone relying on soft dirtiness catch pages that might be written
+ * through non CPU mappings.
+ *
+ * @MMU_NOTIFY_RELEASE: used during mmu_interval_notifier invalidate to signal
+ * that the mm refcount is zero and the range is no longer accessible.
+ *
+ * @MMU_NOTIFY_MIGRATE: used during migrate_vma_collect() invalidate to signal
+ * a device driver to possibly ignore the invalidation if the
+ * owner field matches the driver's device private pgmap owner.
+ *
+ * @MMU_NOTIFY_EXCLUSIVE: to signal a device driver that the device will no
+ * longer have exclusive access to the page. When sent during creation of an
+ * exclusive range the owner will be initialised to the value provided by the
+ * caller of make_device_exclusive_range(), otherwise the owner will be NULL.
+ */
+enum mmu_notifier_event {
+	MMU_NOTIFY_UNMAP = 0,
+	MMU_NOTIFY_CLEAR,
+	MMU_NOTIFY_PROTECTION_VMA,
+	MMU_NOTIFY_PROTECTION_PAGE,
+	MMU_NOTIFY_SOFT_DIRTY,
+	MMU_NOTIFY_RELEASE,
+	MMU_NOTIFY_MIGRATE,
+	MMU_NOTIFY_EXCLUSIVE,
+};
+
 struct mmu_notifier_ops {
 	/*
 	 * Flags to specify behavior of callbacks for this MMU notifier.
